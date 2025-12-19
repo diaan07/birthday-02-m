@@ -7,79 +7,60 @@
         body { margin: 0; background: #0b0d17; color: white; font-family: 'Courier New', monospace; text-align: center; }
         .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: url('https://www.transparenttextures.com/patterns/stardust.png'); }
         .container { padding: 50px; }
-        
-        #puzzle-board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 2px;
-            border: 2px solid #4f5b93;
-            margin: 20px auto;
-            width: 304px;
-        }
-        .tile {
-            width: 100px;
-            height: 100px;
-            background-image: url('puzzle.jpg');
-            background-size: 300px 300px;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
+        #puzzle-board { display: grid; grid-template-columns: repeat(3, 100px); grid-template-rows: repeat(3, 100px); gap: 2px; border: 2px solid #4f5b93; margin: 20px auto; width: 304px; }
+        .tile { width: 100px; height: 100px; background-image: url('puzzle.jpg'); background-size: 300px 300px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
         .empty { background: #1a1a2e; cursor: default; }
-
-        .hint-container { margin-top: 10px; display: none; }
-        .hint-img { width: 150px; border: 1px solid #4f5b93; border-radius: 5px; }
-
         #final-message { display: none; animation: fadeIn 2s; }
-        .birthday-photo { width: 250px; border-radius: 10px; margin: 10px; border: 2px solid #fff; }
-        button { padding: 10px; background: #4f5b93; color: white; border: none; cursor: pointer; border-radius: 5px; margin-top: 10px; }
+        button { padding: 10px 15px; background: #4f5b93; color: white; border: none; cursor: pointer; border-radius: 5px; margin: 5px; font-weight: bold; }
+        #typewriter-text { max-width: 600px; margin: 40px auto; background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; border: 1px solid #4f5b93; line-height: 1.8; min-height: 100px; text-align: left; font-size: 1.1rem; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
     <div class="stars"></div>
-    
+    <audio id="ambient-audio" loop><source src="space-ambient.mp3" type="audio/mpeg"></audio>
+    <audio id="start-audio"><source src="puzzle-start.mp3" type="audio/mpeg"></audio>
+
     <div class="container" id="game-container">
-        <h1>🚀 MISSION: IMAGE STABILIZATION</h1>
-        <p>Mohamed, fix the astronaut visual to unlock the data.</p>
-        
-        <div id="puzzle-board"></div>
-        <button onclick="toggleHint()">Toggle Hint</button>
-        
-        <div class="hint-container" id="hint-box">
-            <p>Target Visual:</p>
-            <img src="puzzle.jpg" class="hint-img">
-        </div>
+        <h1>🚀 MISSION CONTROL</h1>
+        <p>Click "Initiate Mission" to start background systems.</p>
+        <button onclick="initiateMission()" id="init-btn">Initiate Mission</button>
+        <div id="puzzle-board" style="display:none;"></div>
+        <p id="move-info" style="display:none;">Moves: <span id="move-count">0</span></p>
     </div>
 
     <div id="final-message" class="container">
         <h1>✨ ACCESS GRANTED! ✨</h1>
-        <img src="photo1.jpg" class="birthday-photo">
-        <img src="photo2.jpg" class="birthday-photo">
-        <p style="max-width: 600px; margin: 20px auto; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 10px;">
-            Since we don't know each other for a long time, i really don't know what to say XD! <br>
-            but it's a funny thing to do for someone u appreciat being with and it's kinda your speciality so i thought why not? <br><br>
-            Happy birthday <b>baladiya guy</b>! Wish u the best in your life, being 22 is not bad u r still young :3 <br><br>
-            And don't forget! we got some people to kill together XD
-        </p>
+        <div id="typewriter-text"></div>
+        <p style="color: #4f5b93; margin-top: 20px;">🛸 End of Transmission.</p>
     </div>
 
     <script>
-        const board = document.getElementById('puzzle-board');
+        const ambientAudio = document.getElementById('ambient-audio');
+        const startAudio = document.getElementById('start-audio');
+        let moveCount = 0, firstMoveMade = false;
         let tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-        
         tiles.sort(() => Math.random() - 0.5);
 
+        const message = "Since we don't know each other for a long time, i really don't know what to say XD! But it's a funny thing to do for someone u appreciat being with and it's kinda your speciality so i thought why not? \n\nHappy birthday baladiya guy! Wish u the best in your life, being 22 is not bad u r still young :3 \n\nAnd don't forget! We got some people to kill together XD 🔪🚀";
+
+        function initiateMission() {
+            ambientAudio.play();
+            document.getElementById('init-btn').style.display = 'none';
+            document.getElementById('puzzle-board').style.display = 'grid';
+            document.getElementById('move-info').style.display = 'block';
+            createBoard();
+        }
+
         function createBoard() {
+            const board = document.getElementById('puzzle-board');
             board.innerHTML = '';
             tiles.forEach((tile, index) => {
                 const tileDiv = document.createElement('div');
                 tileDiv.classList.add('tile');
-                if (tile === 8) {
-                    tileDiv.classList.add('empty');
-                } else {
-                    const row = Math.floor(tile / 3);
-                    const col = tile % 3;
+                if (tile === 8) tileDiv.classList.add('empty');
+                else {
+                    const row = Math.floor(tile / 3), col = tile % 3;
                     tileDiv.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
                     tileDiv.onclick = () => moveTile(index);
                 }
@@ -88,24 +69,17 @@
         }
 
         function moveTile(index) {
+            if (!firstMoveMade) { startAudio.play(); firstMoveMade = true; }
             const emptyIndex = tiles.indexOf(8);
-            const row = Math.floor(index / 3);
-            const col = index % 3;
-            const emptyRow = Math.floor(emptyIndex / 3);
-            const emptyCol = emptyIndex % 3;
-
-            const isAdjacent = (Math.abs(row - emptyRow) + Math.abs(col - emptyCol)) === 1;
-
-            if (isAdjacent) {
+            const row = Math.floor(index / 3), col = index % 3;
+            const emptyRow = Math.floor(emptyIndex / 3), emptyCol = emptyIndex % 3;
+            if ((Math.abs(row - emptyRow) + Math.abs(col - emptyCol)) === 1) {
                 [tiles[index], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[index]];
+                moveCount++;
+                document.getElementById('move-count').innerText = moveCount;
                 createBoard();
                 checkWin();
             }
-        }
-
-        function toggleHint() {
-            const hint = document.getElementById('hint-box');
-            hint.style.display = hint.style.display === 'none' ? 'block' : 'none';
         }
 
         function checkWin() {
@@ -113,11 +87,19 @@
                 setTimeout(() => {
                     document.getElementById('game-container').style.display = 'none';
                     document.getElementById('final-message').style.display = 'block';
+                    typeWriter();
                 }, 500);
             }
         }
 
-        createBoard();
+        let i = 0;
+        function typeWriter() {
+            if (i < message.length) {
+                document.getElementById("typewriter-text").innerHTML += message.charAt(i).replace(/\n/g, '<br>');
+                i++;
+                setTimeout(typeWriter, 50);
+            }
+        }
     </script>
 </body>
 </html>
